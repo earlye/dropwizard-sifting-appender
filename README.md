@@ -8,9 +8,9 @@ dropwizard-sifting-appender
 Maven:
 ```xml
 <dependency>
-  <groupId>com.github.mstarodubtsev.dropwizard</groupId>
+  <groupId>com.github.earlye.dropwizard</groupId>
   <artifactId>dropwizard-sifting-appender</artifactId>
-  <version>0.0.7</version>
+  <version>0.0.9-SNAPSHOT</version>
 </dependency>
 ```
 

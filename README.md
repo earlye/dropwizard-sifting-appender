@@ -5,7 +5,9 @@ dropwizard-sifting-appender
 [Dropwizard](http://dropwizard.io/) logging addon for using logback SiftingAppender for dynamically splitting log messages into separate log files depending of MDC context. This is needed because Dropwizard overwrites the default mechanism for loading logback configuration (logback.xml) in favor of its application.yml files.
 
 ## Installation
-Maven:
+Sorry: Clone the repo and build it... I haven't gotten around to actually releasing to maven :-(
+
+If I had, you would be able to do this:
 ```xml
 <dependency>
   <groupId>com.github.earlye.dropwizard</groupId>

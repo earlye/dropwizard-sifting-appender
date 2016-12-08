@@ -7,7 +7,7 @@ dropwizard-sifting-appender
 ## Installation
 Sorry: Clone the repo and build it... I haven't gotten around to actually releasing to maven :-(
 
-If I had, you would be able to do this:
+If I had, you would be able to *just* do this:
 ```xml
 <dependency>
   <groupId>com.github.earlye.dropwizard</groupId>

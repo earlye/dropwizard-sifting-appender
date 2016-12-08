@@ -1,11 +1,9 @@
 package com.github.mstarodubtsev.dropwizard;
 
+import java.nio.file.Paths;
 import java.util.TimeZone;
 
 import javax.validation.constraints.NotNull;
-
-import io.dropwizard.logging.AbstractAppenderFactory;
-import io.dropwizard.validation.ValidationMethod;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,9 +17,14 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.FileAppender;
-import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.sift.AppenderFactory;
+import ch.qos.logback.core.spi.DeferredProcessingAware;
+import io.dropwizard.logging.AbstractAppenderFactory;
+import io.dropwizard.logging.async.AsyncAppenderFactory;
+import io.dropwizard.logging.filter.LevelFilterFactory;
+import io.dropwizard.logging.layout.LayoutFactory;
+import io.dropwizard.validation.ValidationMethod;
 
 /**
  * An {@link AppenderFactory} implementation which provides an appender that splits events to separate
@@ -77,7 +80,7 @@ import ch.qos.logback.core.sift.AppenderFactory;
  * @see AbstractAppenderFactory
  */
 @JsonTypeName("sift")
-public class SiftingAppenderFactory extends AbstractAppenderFactory {
+public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends AbstractAppenderFactory<E> {
     /**
      * Discriminator key for sift events.
      */
@@ -89,6 +92,12 @@ public class SiftingAppenderFactory extends AbstractAppenderFactory {
      */
     @NotNull
     private String discriminatorDefaultValue;
+    
+    /**
+     * Logging directory
+     */
+    @NotNull
+    private String loggingDirectory;
 
     /**
      * The Logback pattern with which events will be formatted.
@@ -182,12 +191,12 @@ public class SiftingAppenderFactory extends AbstractAppenderFactory {
      * Constructor.
      */
     @Override
-    public final Appender<ILoggingEvent> build(final LoggerContext context, final String applicationName, final Layout<ILoggingEvent> layout) {
+    public Appender<E> build(LoggerContext context, String applicationName, LayoutFactory<E> layoutFactory,
+            LevelFilterFactory<E> levelFilterFactory, AsyncAppenderFactory<E> asyncAppenderFactory) {
         final SiftingAppender siftingAppender = new SiftingAppender();
         siftingAppender.setName("sift-appender");
         siftingAppender.setContext(context);
-        addThresholdFilter(siftingAppender, threshold);
-
+        
         MDCBasedDiscriminator mdcBasedDiscriminator = new MDCBasedDiscriminator();
         mdcBasedDiscriminator.setKey(discriminatorKey);
         mdcBasedDiscriminator.setDefaultValue(discriminatorDefaultValue);
@@ -203,7 +212,8 @@ public class SiftingAppenderFactory extends AbstractAppenderFactory {
 
                 appender.setName("FILE-" + discriminatingValue);
                 appender.setContext(context);
-                appender.setFile("log-" + discriminatingValue + ".log");
+                
+                appender.setFile(Paths.get(loggingDirectory,discriminatingValue + ".log").toString());
                 appender.setPrudent(false);
 
                 PatternLayoutEncoder pl = new PatternLayoutEncoder();
@@ -219,6 +229,16 @@ public class SiftingAppenderFactory extends AbstractAppenderFactory {
         });
         siftingAppender.start();
 
-        return wrapAsync(siftingAppender);
+        @SuppressWarnings("unchecked")
+        Appender<E> result = (Appender<E>)siftingAppender;
+        return wrapAsync(result,asyncAppenderFactory);
+    }
+
+    public String getLoggingDirectory() {
+        return loggingDirectory;
+    }
+
+    public void setLoggingDirectory(String loggingDirectory) {
+        this.loggingDirectory = loggingDirectory;
     }
 }

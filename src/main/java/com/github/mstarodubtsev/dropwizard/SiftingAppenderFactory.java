@@ -67,6 +67,11 @@ import io.dropwizard.validation.ValidationMethod;
  *         <td>Discriminator default value</td>
  *     </tr>
  *     <tr>
+ *         <td>{@code loggindDirectory}</td>
+ *         <td>{@code <i>none</i>}</td>
+ *         <td>Directory to place log files in.</td>
+ *     </tr>
+ *     <tr>
  *         <td>{@code messagePattern}</td>
  *         <td>the default format</td>
  *         <td>
@@ -77,10 +82,12 @@ import io.dropwizard.validation.ValidationMethod;
  *     </tr>
  * </table>
  *
+ * @param <E> - parameter to pass down to AbstractAppenderFactory
+ *
  * @see AbstractAppenderFactory
  */
 @JsonTypeName("sift")
-public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends AbstractAppenderFactory<E> {
+public class SiftingAppenderFactory<E extends DeferredProcessingAware> extends AbstractAppenderFactory<E> {
     /**
      * Discriminator key for sift events.
      */
@@ -92,9 +99,9 @@ public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends
      */
     @NotNull
     private String discriminatorDefaultValue;
-    
+
     /**
-     * Logging directory
+     * Logging directory.
      */
     @NotNull
     private String loggingDirectory;
@@ -191,12 +198,12 @@ public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends
      * Constructor.
      */
     @Override
-    public Appender<E> build(LoggerContext context, String applicationName, LayoutFactory<E> layoutFactory,
-            LevelFilterFactory<E> levelFilterFactory, AsyncAppenderFactory<E> asyncAppenderFactory) {
+    public Appender<E> build(final LoggerContext context, final String applicationName, final LayoutFactory<E> layoutFactory,
+            final LevelFilterFactory<E> levelFilterFactory, final AsyncAppenderFactory<E> asyncAppenderFactory) {
         final SiftingAppender siftingAppender = new SiftingAppender();
         siftingAppender.setName("sift-appender");
         siftingAppender.setContext(context);
-        
+
         MDCBasedDiscriminator mdcBasedDiscriminator = new MDCBasedDiscriminator();
         mdcBasedDiscriminator.setKey(discriminatorKey);
         mdcBasedDiscriminator.setDefaultValue(discriminatorDefaultValue);
@@ -212,8 +219,8 @@ public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends
 
                 appender.setName("FILE-" + discriminatingValue);
                 appender.setContext(context);
-                
-                appender.setFile(Paths.get(loggingDirectory,discriminatingValue + ".log").toString());
+
+                appender.setFile(Paths.get(loggingDirectory, discriminatingValue + ".log").toString());
                 appender.setPrudent(false);
 
                 PatternLayoutEncoder pl = new PatternLayoutEncoder();
@@ -230,15 +237,23 @@ public  class SiftingAppenderFactory <E extends DeferredProcessingAware> extends
         siftingAppender.start();
 
         @SuppressWarnings("unchecked")
-        Appender<E> result = (Appender<E>)siftingAppender;
-        return wrapAsync(result,asyncAppenderFactory);
+        Appender<E> result = (Appender<E>) siftingAppender;
+        return wrapAsync(result, asyncAppenderFactory);
     }
 
+    /**
+     * Getter.
+     * @return current value.
+     */
     public String getLoggingDirectory() {
         return loggingDirectory;
     }
 
-    public void setLoggingDirectory(String loggingDirectory) {
+    /**
+     * Setter.
+     * @param loggingDirectory Directory to log to.
+     */
+    public void setLoggingDirectory(final String loggingDirectory) {
         this.loggingDirectory = loggingDirectory;
     }
 }
